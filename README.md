@@ -1,64 +1,24 @@
-# Rotas da API de Gerenciamento de Mensagens
+# Gerenciamento de Mensagens API
 
-Este repositório contém as definições das rotas de uma API de gerenciamento de mensagens que permite interagir com contatos, tickets e mensagens associados a uma empresa específica. A API oferece funcionalidades de busca, inserção e rastreamento de mensagens.
+Esta API oferece funcionalidades de gerenciamento de mensagens para empresas, permitindo interagir com contatos, tickets e mensagens associados a uma empresa específica. Ela é construída com Node.js, utiliza um banco de dados PostgreSQL para armazenar dados e é baseada no framework Express.js para a criação de rotas.
 
-## Rotas Disponíveis
+## Recursos Principais
 
-### Obter Dados da Empresa
+- **Obter Dados da Empresa:** Obtenha informações detalhadas sobre uma empresa com base em seu ID e token de autenticação.
 
-- **Endpoint:** `/api/get_company/:companyID/:token`
-- **Método:** GET
+- **Obter Tickets de Rastreamento:** Recupere tickets de rastreamento associados a uma empresa específica, com suporte a paginação.
 
-Esta rota permite obter informações sobre uma empresa com base no seu ID e token de autenticação. Ela verifica a validade do token e retorna os detalhes da empresa.
+- **Obter Tickets de Suporte:** Recupere tickets de suporte associados a uma empresa específica, com suporte a paginação.
 
-### Obter Tickets de Rastreamento
+- **Obter Usuários:** Recupere informações sobre usuários associados a uma empresa específica, com suporte a paginação.
 
-- **Endpoint:** `/api/get_TicketTraking/:companyID/:token`
-- **Método:** GET
+- **Obter Tags do Kanban:** Recupere tags do Kanban associadas a uma empresa específica, com suporte a paginação.
 
-Essa rota permite recuperar tickets de rastreamento associados a uma empresa específica. Os resultados podem ser paginados e filtrados por token de autenticação.
+- **Obter Avaliações de Usuários:** Recupere avaliações de usuários associadas a uma empresa específica, com suporte a paginação.
 
-### Obter Tickets de Suporte
+- **Obter Contatos:** Recupere informações de contatos associados a uma empresa específica, com suporte a paginação.
 
-- **Endpoint:** `/api/get_Ticket/:companyID/:token`
-- **Método:** GET
-
-Esta rota permite recuperar tickets de suporte associados a uma empresa específica. Assim como na rota anterior, os resultados podem ser paginados e filtrados por token de autenticação.
-
-### Obter Usuários
-
-- **Endpoint:** `/api/get_Users/:companyID/:token`
-- **Método:** GET
-
-Essa rota permite recuperar informações sobre usuários associados a uma empresa específica. Os resultados podem ser paginados e filtrados por token de autenticação.
-
-### Obter Tags do Kanban
-
-- **Endpoint:** `/api/get_Tags_Kanban/:companyID/:token`
-- **Método:** GET
-
-Esta rota permite recuperar tags do Kanban associadas a uma empresa específica. Os resultados podem ser paginados e filtrados por token de autenticação.
-
-### Obter Avaliações de Usuários
-
-- **Endpoint:** `/api/get_UserRatings/:companyID/:token`
-- **Método:** GET
-
-Esta rota permite recuperar avaliações de usuários associadas a uma empresa específica. Os resultados podem ser paginados e filtrados por token de autenticação.
-
-### Obter Contatos
-
-- **Endpoint:** `/api/get_Contacts/:companyID/:token`
-- **Método:** GET
-
-Esta rota permite recuperar informações de contatos associados a uma empresa específica. Os resultados podem ser paginados e filtrados por token de autenticação.
-
-### Inserir Mensagem
-
-- **Endpoint:** `/api/insert_message`
-- **Método:** POST
-
-Esta rota permite inserir mensagens no sistema, associando-as a contatos e tickets. Ela verifica a validade do token e, se necessário, cria um novo ticket. Os dados da mensagem são enviados no corpo da solicitação.
+- **Inserir Mensagem:** Insira mensagens no sistema, associando-as a contatos e tickets, verificando a validade do token e criando novos tickets, se necessário.
 
 ## Tecnologias Utilizadas
 
@@ -71,10 +31,15 @@ Esta rota permite inserir mensagens no sistema, associando-as a contatos e ticke
 ## Como Utilizar
 
 1. Clone este repositório.
-2. Configure as variáveis de ambiente e as informações de conexão com o banco de dados.
-3. Execute a aplicação Node.js.
-4. Utilize as rotas definidas acima para acessar e manipular os dados do sistema de gerenciamento de mensagens.
+2. Configure as variáveis de ambiente com as informações do banco de dados no arquivo `.env`.
+3. Instale as dependências com `npm install` ou `yarn install`.
+4. Inicie a aplicação com `npm start` ou `yarn start`.
 
----
+## Contribuindo
 
-Sinta-se à vontade para personalizar essa descrição de acordo com a estrutura do seu repositório no GitHub e suas necessidades específicas. Certifique-se de manter a documentação atualizada à medida que novas funcionalidades são adicionadas ou alterações são feitas no código.
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues, propor novos recursos e enviar pull requests.
+
+## Licença
+
+Este projeto é licenciado sob a [Licença MIT](./LICENSE).
+
