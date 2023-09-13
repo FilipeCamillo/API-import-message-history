@@ -1,12 +1,11 @@
-// db-config.js
+require('dotenv').config();
 
 const dbConfig = {
-    user: 'multi100',
-    host: '164.152.246.42',
-    database: 'multi100',
-    password: 'multi100',
-    port: 5432, // Porta padrão do PostgreSQL
-  };
-  
-  module.exports = dbConfig;
-  
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: parseInt(process.env.DB_PORT), // Porta padrão do PostgreSQL
+};
+
+module.exports = dbConfig;
