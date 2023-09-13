@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Importar dados do Press-Ticket</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="../../../../api-docs.css">
+</head>
+
+<body class="grey lighten-4">
+  <div class="container">
+    <div class="row">
+      <div class="col s12 m8 offset-m2 l6 offset-l3">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title center-align">Importar dados do Press-Ticket</span>
+            <div class="divider"></div>
+
+            <div class="section center-align">
+              <div class="section">
+                <!-- Logo no topo -->
+                <div class="center-align">
+                  <img src="../../../../logo.png" alt="Logo da Empresa" style="max-width: 200px;">
+                </div>
+
+                <!-- Input para companyID e token -->
+                <div class="input-field">
+                  <input id="company-id" type="text" class="validate">
+                  <label for="company-id">Company ID</label>
+                </div>
+                <div class="input-field">
+                  <input id="token" type="text" class="validate">
+                  <label for="token">Token</label>
+                </div>
+
+                <!-- Seção para upload do arquivo Excel -->
+                <div class="file-field input-field">
+                  <div class="btn custom-deep-orange">
+                    <span>Arquivo</span>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls">
+                  </div>
+                  <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text" placeholder="Upload seu arquivo Excel">
+                  </div>
+                </div>
+
+                <!-- Botão para importação centralizado -->
+                <button onclick="handleFile()"
+                  class="btn waves-effect waves-light custom-deep-orange center-align">Importar</button>
+              </div>
+
+              <br>
+              <!-- Seção para baixar modelo de arquivo Excel -->
+              <div class="center-align">
+                <p>Para uma importação mais eficiente, baixe nosso modelo de arquivo Excel:</p>
+                <a href="Modelo de importação.xlsx" class="btn custom-deep-orange waves-effect waves-light">Baixar
+                  Modelo Excel</a>
+              </div>
+            </div>
+
+            <!-- Progress Bar e Alerta -->
+            <div class="card-action center-align" style="display: none;" id="progress-container">
+              <label id="progress-label">Carregando... 0%</label>
+              <div class="progress">
+                <div class="determinate" id="progress-bar" style="width: 0%;"></div>
+              </div>
+              <p id="info-message">Não feche a página até que o carregamento seja concluído.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela para exibir os dados do Excel -->
+      <div class="row" id="excel-table-container" style="display: none;">
+        <div class="col s12">
+          <table class="striped" id="excel-data">
+            <!-- Os dados do Excel serão exibidos aqui -->
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Defina um elemento para o modal de informações -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <h4>Importação concluída</h4>
+      <p>Já pode sair do navegador.</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Fechar</a>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
+  <script>
+    function showInfoModal(message) {
+      const modalInfo = document.getElementById('info-modal');
+      const modalInstance = M.Modal.init(modalInfo, {
+        dismissible: false, // Impede o fechamento clicando fora do modal
+      });
+      modalInstance.open();
+    }
+
+    async function handleFile() {
+      const companyId = document.getElementById('company-id').value;
+      const token = document.getElementById('token').value;
+
+      const input = document.getElementById('excel-file');
+      const table = document.getElementById('excel-data');
+      const progressBar = document.getElementById('progress-bar');
+      const progressLabel = document.getElementById('progress-label');
+      const progressContainer = document.getElementById('progress-container');
+      const infoMessage = document.getElementById('info-message');
+
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const data = e.target.result;
+        const options = {
+          type: 'binary',
+          raw: false,
+        };
+        const workbook = XLSX.read(data, options);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const excelData = XLSX.utils.sheet_to_json(worksheet, {
+          header: [
+            'body',
+            'ack',
+            'read',
+            'mediaType',
+            'mediaUrl',
+            'createdAt',
+            'updatedAt',
+            'fromMe',
+            'isDeleted',
+            'number',
+            'isPrivate',
+            'isEdited',
+          ],
+        });
+
+        // Desabilitar botão e campos de entrada durante o carregamento
+        disableInputsAndButton();
+
+        // Limpar a tabela
+        table.innerHTML = '';
+
+        // Calcular o número total de linhas
+        const totalRows = excelData.length;
+
+        // Inicializar a contagem de linhas enviadas
+        let linhasEnviadas = 0;
+
+        for (let i = 0; i < totalRows; i++) {
+          const rowData = excelData[i];
+
+          // Converter as colunas "createdAt" e "updatedAt" para formato ISO 8601
+          rowData.createdAt = formatDateToISO(rowData.createdAt);
+          rowData.updatedAt = formatDateToISO(rowData.updatedAt);
+
+          const tr = document.createElement('tr');
+          for (const key in rowData) {
+            if (rowData.hasOwnProperty(key)) {
+              const cellData = rowData[key];
+              const td = document.createElement('td');
+              td.textContent = cellData;
+              tr.appendChild(td);
+            }
+          }
+          table.appendChild(tr);
+
+          // Atualizar a barra de progresso e o rótulo de progresso
+          const progress = Math.round((linhasEnviadas / totalRows) * 100);
+          progressBar.style.width = `${progress}%`;
+          progressLabel.textContent = `Carregando... ${progress}%`;
+
+          // Aguardar um pequeno atraso para permitir a atualização da interface do usuário
+          await sleep(10);
+
+          // Enviar os dados para a rota insert_message
+          await sendDataToInsertMessage(companyId, token, rowData);
+
+          // Incrementar a contagem de linhas enviadas
+          linhasEnviadas++;
+        }
+
+        // Habilitar botão e campos de entrada após a conclusão
+        enableInputsAndButton();
+
+        // Esconder a barra de progresso e mostrar os dados quando o carregamento estiver completo
+        progressContainer.style.display = 'none';
+        table.style.display = 'block';
+
+        // Mostrar mensagem de conclusão
+        showInfoModal('Importação concluída com sucesso. Você pode fechar esta mensagem.');
+      };
+
+      reader.readAsBinaryString(file);
+
+      // Mostrar a barra de progresso e o rótulo de progresso quando o botão é clicado
+      progressContainer.style.display = 'block';
+    }
+
+    // Função para formatar datas no formato ISO 8601
+    function formatDateToISO(dateString) {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      return date.toISOString();
+    }
+
+    // Função para enviar os dados para a rota insert_message
+    async function sendDataToInsertMessage(companyId, token, data) {
+      try {
+
+        // Preparar os dados para envio
+        const postData = {
+          companyID: companyId,
+          token: token,
+          body: data.body,
+          ack: data.ack,
+          read: data.read,
+          mediaType: data.mediaType,
+          mediaUrl: data.mediaUrl,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          fromMe: data.fromMe,
+          isDeleted: data.isDeleted,
+          contactNumber: data.number,
+          isPrivate: data.isPrivate,
+          isEdited: data.isEdited,
+        };
+
+        // Enviar os dados para a rota insert_message via fetch ou axios
+        const response = await fetch('/api/insert_message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(postData),
+        });
+
+        if (response.status === 200) {
+          console.log('Dados enviados com sucesso:', postData);
+        } else {
+          console.error('Erro ao enviar dados:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Erro ao enviar dados:', error);
+      }
+    }
+
+    // Função para limpar o conteúdo do corpo (body)
+    function cleanUpText(text) {
+      const cleanedText = text.replace(/\s+/g, ' ').trim();
+      return cleanedText;
+    }
+
+    // Função para converter texto para UTF-8
+    function textToUTF8(text) {
+      const encoder = new TextEncoder();
+      return encoder.encode(text);
+    }
+
+    // Função para aguardar um certo tempo (ms)
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Função para desabilitar botão e campos de entrada durante o carregamento
+    function disableInputsAndButton() {
+      document.getElementById('company-id').disabled = true;
+      document.getElementById('token').disabled = true;
+      document.getElementById('excel-file').disabled = true;
+      document.querySelector('button').disabled = true;
+    }
+
+    // Função para habilitar botão e campos de entrada após a conclusão
+    function enableInputsAndButton() {
+      document.getElementById('company-id').disabled = false;
+      document.getElementById('token').disabled = false;
+      document.getElementById('excel-file').disabled = false;
+      document.querySelector('button').disabled = false;
+    }
+
+  </script>
+</body>
+
+</html>

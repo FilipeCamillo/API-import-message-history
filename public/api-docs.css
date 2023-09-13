@@ -1,0 +1,37 @@
+.teal-text-orange {
+    color: #F04405 !important; /* Adicione !important para garantir que esta regra tenha prioridade */
+}
+.custom-deep-orange {
+    background-color: #FF5722; /* Substitua pela cor "deep orange" desejada */
+    color: #fff; /* Cor do texto para garantir a legibilidade */
+    /* Outros estilos personalizados, se necessário */
+}
+
+/* Estilos personalizados para ajustar o layout */
+#menu-container {
+    min-height: 100px; /* Altura mínima desejada para o menu lateral */
+    max-height: 90vh; /* Altura máxima desejada para o menu lateral (90% da altura da janela) */
+    overflow-y: auto; /* Adicione uma barra de rolagem vertical caso o conteúdo do menu seja maior que a altura máxima */
+}
+
+#content {
+    padding-left:10px;
+    /* Espaçamento à esquerda do conteúdo principal para evitar o menu lateral */
+}
+
+/* Estilos para o logotipo */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; /* Altura desejada para o logotipo */
+}
+
+.logo-container img {
+    max-width: 80%; /* Defina a largura máxima do logotipo */
+    max-height: 80%; /* Defina a altura máxima do logotipo */
+}
+.logo-container.with-divider {
+    border-bottom: 1px solid #ccc; /* Adicione uma borda inferior */
+    padding-bottom: 10px; /* Ajuste o espaçamento inferior conforme necessário */
+}
