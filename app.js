@@ -1,8 +1,9 @@
 // index.js
-
+// import "./db-config";
 const express = require('express');
 const { Pool } = require('pg');
 const dbConfig = require('./db-config'); // Importe as configurações do banco de dados
+
 const { v4: uuidv4 } = require('uuid');
 const app = express();
 const fs = require('fs');
@@ -21,6 +22,7 @@ app.use(express.static(path.join(__dirname, './public')));
 
 app.use('/ImportExcelPage', express.static(path.join(__dirname, './src/components/ImportExcelPage')));
 
+app.use('/admin', express.static(path.join(__dirname, './src/components/admin')));
 
 
 
@@ -33,14 +35,14 @@ app.get('/getVersion', (req, res) => {
     // Lê o conteúdo do arquivo package.json
     const packageJsonPath = path.join(__dirname, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-  
+
     // Obtém a versão do package.json
     const version = packageJson.version;
-  
+
     // Envia a versão como resposta JSON
     res.json({ version });
-  });
-  
+});
+
 app.get('/api/get_company/:companyID/:token', async (req, res) => {
     try {
         const companyID = req.params.companyID; // Obtém o ID da empresa da URL
@@ -57,6 +59,36 @@ app.get('/api/get_company/:companyID/:token', async (req, res) => {
         // Se a validação for bem-sucedida, execute uma nova consulta SQL para buscar dados de outra tabela
         const queryData = `SELECT * FROM "Companies" WHERE "id" = $1`;
         const resultData = await pool.query(queryData, [companyID]);
+
+        res.json(resultData.rows);
+    } catch (error) {
+        console.error('Erro na consulta ao banco de dados:', error);
+        res.status(500).json({ error: 'Erro ao buscar dados do banco de dados.' });
+    }
+});
+
+
+app.get('/api/get_all_companies/:companyID/:token', async (req, res) => {
+    try {
+        const companyID = req.params.companyID; // Obtém o ID da empresa da URL
+        const token = req.params.token; // Obtém o token da URL
+
+        // Execute uma consulta SQL para verificar a validade do token e da empresa
+        const queryValidation = `SELECT * FROM "Whatsapps" WHERE "companyId" = $1 AND "token" = $2`;
+        const resultValidation = await pool.query(queryValidation, [companyID, token]);
+
+        if (resultValidation.rows.length === 0) {
+            return res.status(401).json({ error: 'Token ou empresa inválidos.' });
+        }
+
+        // Verifique se a empresa solicitante tem ID 1
+        if (companyID !== '1') {
+            return res.status(401).json({ error: 'Você não tem permissão para acessar esta rota.' });
+        }
+
+        // Se a validação for bem-sucedida e a empresa for a de ID 1, execute uma nova consulta SQL para buscar todas as empresas
+        const queryData = `SELECT * FROM "Companies"`;
+        const resultData = await pool.query(queryData);
 
         res.json(resultData.rows);
     } catch (error) {
@@ -284,7 +316,7 @@ app.post('/api/insert_message', async (req, res) => {
         if (resultCheckTicket.rows.length === 0) {
             // Se não existir um ticket, crie um novo e obtenha o ID dele
             const queryCreateTicket = `INSERT INTO "Tickets" ( "status", "lastMessage", "contactId", "isGroup", "unreadMessages", "companyId", "createdAt", "updatedAt","uuid", "chatbot", "isBot", "channel", "amountUsedBotQueues", "fromMe", "sendInactiveMessage", "amountUsedBotQueuesNPS", "isOutOfHour") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING "id"`;
-            const  resultCreateTicket = await pool.query(queryCreateTicket, [
+            const resultCreateTicket = await pool.query(queryCreateTicket, [
                 'close', // Substitua 'status_value' pelo valor desejado
                 'backup', // Substitua 'lastMessage_value' pelo valor desejado
                 contactId,
