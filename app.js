@@ -5,6 +5,7 @@ const { Pool } = require('pg');
 const dbConfig = require('./db-config'); // Importe as configurações do banco de dados
 const { v4: uuidv4 } = require('uuid');
 const app = express();
+const fs = require('fs');
 
 const bodyParser = require('body-parser'); // Importe o body-parser
 // app.use(express.json()); // Para analisar solicitações JSON
@@ -15,10 +16,10 @@ app.use(bodyParser.json());
 const path = require('path');
 
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, './public')));
 
 
-app.use('/ImportExcelPage', express.static(path.join(__dirname, '../src/components/ImportExcelPage')));
+app.use('/ImportExcelPage', express.static(path.join(__dirname, './src/components/ImportExcelPage')));
 
 
 
@@ -27,6 +28,19 @@ app.use('/ImportExcelPage', express.static(path.join(__dirname, '../src/componen
 // Configuração do pool de conexão do PostgreSQL
 const pool = new Pool(dbConfig);
 
+
+app.get('/getVersion', (req, res) => {
+    // Lê o conteúdo do arquivo package.json
+    const packageJsonPath = path.join(__dirname, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  
+    // Obtém a versão do package.json
+    const version = packageJson.version;
+  
+    // Envia a versão como resposta JSON
+    res.json({ version });
+  });
+  
 app.get('/api/get_company/:companyID/:token', async (req, res) => {
     try {
         const companyID = req.params.companyID; // Obtém o ID da empresa da URL

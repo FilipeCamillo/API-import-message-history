@@ -22,7 +22,10 @@
                     <li>
                         <!-- Logotipo no menu lateral -->
                         <div class="logo-container with-divider">
-                            <img src="logo.png" alt="Logo da Empresa">
+                            <img src="logo.png" alt="Logo da Empresa"><br>
+                        </div>
+                        <div class="with-divider">
+                            <span id="version" class="black-text center-align">v1.0.0</span>
                         </div>
                     </li>
                     <li>
@@ -65,10 +68,29 @@
                             <span class="route-type-get yellow-text">POST</span> Importar Mensagem
                         </a>
                     </li>
-
+                    <li>
+                        <!-- <div class="sidenav-footer"> -->
+                        <span id="version"></span>
+                        <!-- </div> -->
+                    </li>
 
                     <!-- Adicione mais links para outras rotas aqui -->
                 </ul>
+
+                <script>
+                    fetch('/getVersion')
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('version').textContent = data.version;
+                        })
+                        .catch(error => {
+                            console.error('Erro ao buscar a versão da API:', error);
+                        });
+                </script>
+
+
+
+
             </nav>
 
 

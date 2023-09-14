@@ -35,3 +35,10 @@
     border-bottom: 1px solid #ccc; /* Adicione uma borda inferior */
     padding-bottom: 10px; /* Ajuste o espaçamento inferior conforme necessário */
 }
+
+.center-align {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
