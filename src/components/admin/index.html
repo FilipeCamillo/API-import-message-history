@@ -1,1 +1,204 @@
-teste
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Empresas</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <style>
+        .custom-deep-orange {
+            background-color: #FF5722;
+        }
+
+        .page-content {
+            padding: 24px;
+        }
+
+        .summary-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .summary-card i {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .mdl-data-table {
+            width: 100%;
+        }
+
+        .mdl-data-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="custom-deep-orange">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title">Consulta de Empresas</span>
+            </div>
+        </header>
+        <main class="mdl-layout__content">
+            <div class="page-content">
+                <div class="mdl-grid">
+
+                    <!-- Verificação de Senha de Administrador -->
+                    <div class="mdl-cell mdl-cell--12-col">
+
+                        <form id="passwordForm">
+                            <h3>Verificação de Senha de Administrador</h3>
+                            <div class="mdl-textfield mdl-js-textfield">
+                                <input class="mdl-textfield__input" type="password" id="adminPassword" required>
+                                <label class="mdl-textfield__label" for="adminPassword">Senha de Administrador</label>
+                            </div>
+                            <button type="submit"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                                Verificar Senha
+                            </button>
+                        </form>
+                        <p id="errorText" style="color: red;"></p>
+                    </div>
+
+                    <!-- Cards de resumo -->
+                    <div class="mdl-cell mdl-cell--4-col">
+                        <div class="summary-card">
+                            <i class="material-icons">business</i>
+                            <div>
+                                <span>Total de Empresas</span>
+                                <strong id="totalCompanies">Carregando...</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--4-col">
+                        <div class="summary-card">
+                            <i class="material-icons">people</i>
+                            <div>
+                                <span>Total de Usuários</span>
+                                <strong id="totalUsers">Carregando...</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mdl-cell mdl-cell--4-col">
+                        <div class="summary-card">
+                            <i class="material-icons">chat</i>
+                            <div>
+                                <span>Total de Conexões</span>
+                                <strong id="totalWhatsapps">Carregando...</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de empresas -->
+                    <div class="mdl-cell mdl-cell--12-col">
+                        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                            <thead>
+                                <tr>
+                                    <th class="mdl-data-table__cell--non-numeric">ID</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Nome</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Total de Usuários</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Total de Conexões</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Total de Tickets</th> <!-- Nova coluna -->
+                                </tr>
+                            </thead>
+                            <tbody id="companyData">
+                                <!-- Os dados das empresas serão inseridos aqui dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function fetchAndDisplayData() {
+            try {
+                const companyID = 1;
+                const response = await fetch(`/api/get_all_companies_end_user_end_conexoes/${companyID}`);
+                const data = await response.json();
+                const companyData = document.getElementById("companyData");
+
+                companyData.innerHTML = "";
+
+                let totalUsers = 0;
+                let totalWhatsapps = 0;
+                let totalTickets = 0; // Nova variável para o total de Tickets
+
+                data.forEach(company => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                    <td class="mdl-data-table__cell--non-numeric">${company.companyId}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${company.companyName}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${company.TotalUsers}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${company.TotalWhatsapps}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${company.TotalTickets}</td> <!-- Nova coluna -->
+                `;
+                    companyData.appendChild(row);
+
+                    // Atualizar a soma dos usuários, conexões e tickets
+                    totalUsers += parseInt(company.TotalUsers);
+                    totalWhatsapps += parseInt(company.TotalWhatsapps);
+                    totalTickets += parseInt(company.TotalTickets); // Adicionar o total de Tickets
+                });
+
+                const totalCompanies = document.getElementById("totalCompanies");
+                totalCompanies.textContent = data.length;
+
+                const totalUsersElement = document.getElementById("totalUsers");
+                totalUsersElement.textContent = totalUsers;
+
+                const totalWhatsappsElement = document.getElementById("totalWhatsapps");
+                totalWhatsappsElement.textContent = totalWhatsapps;
+
+                const totalTicketsElement = document.getElementById("totalTickets"); // Elemento para exibir o total de Tickets
+                totalTicketsElement.textContent = totalTickets; // Exibir o total de Tickets
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        }
+
+        document.getElementById("passwordForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); // Evita o envio do formulário tradicional
+
+            const adminPassword = document.getElementById("adminPassword").value;
+
+            try {
+                const response = await fetch('/api/validate_admin_password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ adminPassword })
+                });
+
+                if (response.ok) {
+                    // Senha correta, carregue os dados
+                    fetchAndDisplayData();
+                    // Esconda o formulário de senha
+                    document.getElementById("passwordForm").style.display = "none";
+                    // Limpe qualquer mensagem de erro anterior
+                    document.getElementById("errorText").textContent = "";
+                } else {
+                    // Senha incorreta, exiba uma mensagem de erro
+                    document.getElementById("errorText").textContent = "Senha de administrador incorreta. Você não tem permissão para acessar os dados.";
+                }
+            } catch (error) {
+                console.error('Erro ao validar a senha:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>

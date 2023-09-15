@@ -31,18 +31,6 @@ app.use('/admin', express.static(path.join(__dirname, './src/components/admin'))
 const pool = new Pool(dbConfig);
 
 
-app.get('/getVersion', (req, res) => {
-    // Lê o conteúdo do arquivo package.json
-    const packageJsonPath = path.join(__dirname, 'package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-
-    // Obtém a versão do package.json
-    const version = packageJson.version;
-
-    // Envia a versão como resposta JSON
-    res.json({ version });
-});
-
 app.get('/api/get_company/:companyID/:token', async (req, res) => {
     try {
         const companyID = req.params.companyID; // Obtém o ID da empresa da URL
@@ -68,14 +56,17 @@ app.get('/api/get_company/:companyID/:token', async (req, res) => {
 });
 
 
-app.get('/api/get_all_companies/:companyID/:token', async (req, res) => {
+
+
+
+app.get('/api/get_all_companies_end_user_end_conexoes/:companyID/', async (req, res) => {
     try {
         const companyID = req.params.companyID; // Obtém o ID da empresa da URL
         const token = req.params.token; // Obtém o token da URL
 
         // Execute uma consulta SQL para verificar a validade do token e da empresa
-        const queryValidation = `SELECT * FROM "Whatsapps" WHERE "companyId" = $1 AND "token" = $2`;
-        const resultValidation = await pool.query(queryValidation, [companyID, token]);
+        const queryValidation = `SELECT * FROM "Whatsapps" WHERE "companyId" = $1`;
+        const resultValidation = await pool.query(queryValidation, [companyID]);
 
         if (resultValidation.rows.length === 0) {
             return res.status(401).json({ error: 'Token ou empresa inválidos.' });
@@ -87,13 +78,39 @@ app.get('/api/get_all_companies/:companyID/:token', async (req, res) => {
         }
 
         // Se a validação for bem-sucedida e a empresa for a de ID 1, execute uma nova consulta SQL para buscar todas as empresas
-        const queryData = `SELECT * FROM "Companies"`;
+        const queryData = `SELECT 
+        c."id" AS "companyId",
+        c."name" AS "companyName",
+        COUNT(DISTINCT u."id") AS "TotalUsers",
+        COUNT(DISTINCT w."id") AS "TotalWhatsapps",
+        COUNT(DISTINCT t."id") AS "TotalTickets"
+        FROM
+            "Companies" c
+        JOIN
+            "Users" u ON c."id" = u."companyId"
+        JOIN
+            "Whatsapps" w ON c."id" = w."companyId"
+        FULL  JOIN
+            "Tickets" t on c.id = t."companyId"
+        GROUP BY
+            c."id", c."name";`;
         const resultData = await pool.query(queryData);
 
         res.json(resultData.rows);
     } catch (error) {
         console.error('Erro na consulta ao banco de dados:', error);
         res.status(500).json({ error: 'Erro ao buscar dados do banco de dados.' });
+    }
+});
+
+app.post('/api/validate_admin_password', (req, res) => {
+    const adminPassword = req.body.adminPassword;
+    const correctPassword = process.env.MASTER_KEY;
+
+    if (adminPassword === correctPassword) {
+        res.status(200).send('Senha correta');
+    } else {
+        res.status(401).send('Senha incorreta');
     }
 });
 
