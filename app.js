@@ -334,7 +334,7 @@ app.post('/api/insert_message', async (req, res) => {
             // Se não existir um ticket, crie um novo e obtenha o ID dele
             const queryCreateTicket = `INSERT INTO "Tickets" ( "status", "lastMessage", "contactId", "isGroup", "unreadMessages", "companyId", "createdAt", "updatedAt","uuid", "chatbot", "isBot", "channel", "amountUsedBotQueues", "fromMe", "sendInactiveMessage", "amountUsedBotQueuesNPS", "isOutOfHour") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING "id"`;
             const resultCreateTicket = await pool.query(queryCreateTicket, [
-                'close', // Substitua 'status_value' pelo valor desejado
+                'closed', // Substitua 'status_value' pelo valor desejado
                 'backup', // Substitua 'lastMessage_value' pelo valor desejado
                 contactId,
                 false, // Substitua 'isGroup_value' pelo valor desejado
@@ -383,7 +383,7 @@ app.post('/api/insert_message', async (req, res) => {
         // Parâmetros para a inserção
         const insertParams = [
             body, ack, read, mediaType, mediaUrl, ticketId, createdAt,
-            updatedAt, fromMe, isDeleted, contactId, companyId, isPrivate, isEdited
+            updatedAt, fromMe, isDeleted, contactId, companyID, isPrivate, isEdited
         ];
 
         // Execute a inserção dos dados

@@ -96,6 +96,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
   <script>
     function showInfoModal(message) {
       const modalInfo = document.getElementById('info-modal');
@@ -162,9 +164,14 @@
         for (let i = 0; i < totalRows; i++) {
           const rowData = excelData[i];
 
-          // Converter as colunas "createdAt" e "updatedAt" para formato ISO 8601
-          rowData.createdAt = formatDateToISO(rowData.createdAt);
-          rowData.updatedAt = formatDateToISO(rowData.updatedAt);
+          // Verifica se rowData.createdAt e rowData.updatedAt não são nulos ou indefinidos
+          if (rowData.createdAt) {
+            rowData.createdAt = formatDateToISO(rowData.createdAt);
+          }
+
+          if (rowData.updatedAt) {
+            rowData.updatedAt = formatDateToISO(rowData.updatedAt);
+          }
 
           const tr = document.createElement('tr');
           for (const key in rowData) {
@@ -209,13 +216,28 @@
       progressContainer.style.display = 'block';
     }
 
-    // Função para formatar datas no formato ISO 8601
+    function excelSerialDateToJSDate(serial) {
+      // Base para a contagem do Excel (começa no dia 31)
+      const epoch = moment("1899-12-30", "YYYY-MM-DD");
+
+      // Separar a parte do dia e a parte fracionária (hora)
+      const dayNumber = Math.floor(serial);
+      const dayFraction = serial - dayNumber;
+
+      // Adicionar os dias
+      epoch.add(dayNumber, 'days');
+
+      // Converter a parte fracionária para milissegundos e adicioná-los
+      epoch.add(dayFraction * 24 * 60 * 60 * 1000, 'milliseconds');
+
+      return epoch;
+    }
+
     function formatDateToISO(dateString) {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return null;
-      }
-      return date.toISOString();
+      const date = excelSerialDateToJSDate(parseFloat(dateString));
+      const formattedDate = date.format('YYYY/MM/DD HH:mm:ss');
+      console.log("Original:", dateString, "Formatted:", formattedDate); // Para diagnóstico
+      return formattedDate;
     }
 
     // Função para enviar os dados para a rota insert_message
