@@ -24,6 +24,8 @@ app.use('/ImportExcelPage', express.static(path.join(__dirname, './src/component
 
 app.use('/admin', express.static(path.join(__dirname, './src/components/admin')));
 
+app.use('/api', express.static(path.join(__dirname, './src/components/api')));
+
 
 
 
