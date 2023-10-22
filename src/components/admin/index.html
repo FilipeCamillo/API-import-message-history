@@ -109,7 +109,12 @@
                                     <th class="mdl-data-table__cell--non-numeric">Nome</th>
                                     <th class="mdl-data-table__cell--non-numeric">Total de Usuários</th>
                                     <th class="mdl-data-table__cell--non-numeric">Total de Conexões</th>
-                                    <th class="mdl-data-table__cell--non-numeric">Total de Tickets</th> <!-- Nova coluna -->
+                                    <th class="mdl-data-table__cell--non-numeric">Total de Tickets</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Plano</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Valor</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Documento</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Recorrência</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Mês pago</th>
                                 </tr>
                             </thead>
                             <tbody id="companyData">
@@ -122,7 +127,40 @@
         </main>
     </div>
 
+    <i class="material-icons" id="paidIcon" style="color: green;">done</i>
+    <i class="material-icons" id="notPaidIcon" style="color: red;">clear</i>
+
     <script>
+        function getCurrentMonth() {
+            const now = new Date();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0'); // +1 porque os meses começam em zero
+            const year = now.getFullYear();
+            return `${month}/${year}`;
+        }
+        
+
+        async function checkPaymentStatus(documento) {
+            try {
+                const currentMonth = getCurrentMonth();
+                const response = await fetch(`/consulta-faturas/${documento}`);
+                const data = await response.json();
+
+                // Verifique se a resposta contém informações de pagamento para o mês atual
+                const isPaid = data.ResponseDetail.Objects.some(transaction => {
+                    const transactionMonth = new Date(transaction.CreatedDate).toLocaleString('default', { month: '2-digit' });
+                    const transactionYear = new Date(transaction.CreatedDate).toLocaleString('default', { year: 'numeric' });
+                    const transactionDate = `${transactionMonth}/${transactionYear}`;
+                    return transactionDate === currentMonth && transaction.Status === "7"; // Status 7 significa "Baixado"
+                });
+
+                console.log(`Json`, data);
+                return isPaid;
+            } catch (error) {
+                console.error('Erro ao verificar pagamento:', error);
+                return false;
+            }
+        }
+
         async function fetchAndDisplayData() {
             try {
                 const companyID = 1;
@@ -134,24 +172,30 @@
 
                 let totalUsers = 0;
                 let totalWhatsapps = 0;
-                let totalTickets = 0; // Nova variável para o total de Tickets
+                let totalTickets = 0;
 
-                data.forEach(company => {
+                for (const company of data) {
+                    const isPaid = await checkPaymentStatus(company.Documento);
+
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                    <td class="mdl-data-table__cell--non-numeric">${company.companyId}</td>
-                    <td class="mdl-data-table__cell--non-numeric">${company.companyName}</td>
-                    <td class="mdl-data-table__cell--non-numeric">${company.TotalUsers}</td>
-                    <td class="mdl-data-table__cell--non-numeric">${company.TotalWhatsapps}</td>
-                    <td class="mdl-data-table__cell--non-numeric">${company.TotalTickets}</td> <!-- Nova coluna -->
-                `;
+                        <td class="mdl-data-table__cell--non-numeric">${company.companyId}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.companyName}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.TotalUsers}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.TotalWhatsapps}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.TotalTickets}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.Plano}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${formatCurrency(company.Valor)}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.Documento}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${company.Recorrencia}</td>
+                        <td class="mdl-data-table__cell--non-numeric" id="paymentStatusIcon">${isPaid ? '<i class="material-icons" style="color: green;">done</i>' : '<i class="material-icons" style="color: red;">clear</i>'}</td>
+                    `;
                     companyData.appendChild(row);
 
-                    // Atualizar a soma dos usuários, conexões e tickets
                     totalUsers += parseInt(company.TotalUsers);
                     totalWhatsapps += parseInt(company.TotalWhatsapps);
-                    totalTickets += parseInt(company.TotalTickets); // Adicionar o total de Tickets
-                });
+                    totalTickets += parseInt(company.TotalTickets);
+                }
 
                 const totalCompanies = document.getElementById("totalCompanies");
                 totalCompanies.textContent = data.length;
@@ -162,18 +206,23 @@
                 const totalWhatsappsElement = document.getElementById("totalWhatsapps");
                 totalWhatsappsElement.textContent = totalWhatsapps;
 
-                const totalTicketsElement = document.getElementById("totalTickets"); // Elemento para exibir o total de Tickets
-                totalTicketsElement.textContent = totalTickets; // Exibir o total de Tickets
+                const totalTicketsElement = document.getElementById("totalTickets");
+                totalTicketsElement.textContent = formatCurrency(totalTickets);
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
         }
 
-        document.getElementById("passwordForm").addEventListener("submit", async function (event) {
-            event.preventDefault(); // Evita o envio do formulário tradicional
+        function formatCurrency(value) {
+            const formatter = new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 2,
+            });
+            return formatter.format(value);
+        }
 
-            const adminPassword = document.getElementById("adminPassword").value;
-
+        async function displayDataAfterValidation(adminPassword) {
             try {
                 const response = await fetch('/api/validate_admin_password', {
                     method: 'POST',
@@ -197,6 +246,16 @@
             } catch (error) {
                 console.error('Erro ao validar a senha:', error);
             }
+        }
+
+        document.getElementById("passwordForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const adminPassword = document.getElementById("adminPassword").value;
+            displayDataAfterValidation(adminPassword);
+        });
+
+        window.addEventListener("load", function () {
+            // Mantenha esta parte vazia para evitar carregar dados antes da validação
         });
     </script>
 </body>

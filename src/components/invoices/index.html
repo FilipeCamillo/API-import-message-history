@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Faturas</title>
+
+    <!-- Inclusão do Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <style>
+        .status-recusado {
+            background-color: #FFB2B2;
+        }
+
+        .status-baixado {
+            background-color: #B2CCFF;
+        }
+
+        .status-autorizado {
+            background-color: #B2FFB2;
+        }
+
+        .table th,
+        .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Cor de fundo para a tabela inteira */
+        #tabelaFaturas {
+            background-color: #F2F2F2;
+        }
+
+        /* Estilo para o botão de visualizar boleto */
+        .btn-boleto {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+
+        <!-- Formulário para inserir o CNPJ e botão para consulta -->
+        <div class="mb-4">
+            <label for="cnpjInput">CNPJ ou CPF:</label>
+            <input type="text" id="cnpjInput" placeholder="Digite o CNPJ ou CPF" class="form-control mb-2">
+            <button onclick="consultarFaturas()" class="btn btn-primary">Consultar Faturas</button>
+        </div>
+
+        <!-- Filtro -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <label for="filtroStatus">Filtrar por Status:</label>
+                <select id="filtroStatus" class="form-control" onchange="filtrarFaturas()">
+                    <option value="todos">Todos</option>
+                    <option value="pendentes">Pendentes</option>
+                    <option value="processamento">Em processamento</option>
+                    <option value="autorizados">Autorizados</option>
+                    <option value="baixados">Baixados</option>
+                    <option value="expirados">Expirados</option>
+                    <option value="recusado">Recusado</option>
+
+
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabela para exibir as faturas -->
+        <div id="faturasDiv">
+            <table id="tabelaFaturas" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Transação</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Método de Pagamento</th>
+                        <th>Visualizar Boleto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Os dados das faturas serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let faturasData = []; // Variável para armazenar os dados das faturas
+
+        const metodoPagamentoMap = {
+            "1": "Boleto Bancário",
+            "2": "Cartão de Crédito",
+            "6": "PIX",
+            // Adicione mais mapeamentos conforme necessário
+        };
+
+        function formatarData(data) {
+            const dataObj = new Date(data);
+            const dia = String(dataObj.getDate()).padStart(2, '0');
+            const mes = String(dataObj.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+            const ano = dataObj.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function adicionarClasseStatus(mensagem) {
+            if (mensagem.includes('Recusado')) {
+                return 'status-recusado';
+            } else if (mensagem.includes('Baixado')) {
+                return 'status-baixado';
+            } else if (mensagem.includes('Autorizado')) {
+                return 'status-autorizado';
+            } else {
+                return '';
+            }
+        }
+
+        $(document).ready(function () {
+            // Adiciona a formatação enquanto o usuário digita
+            $('#cnpjInput').on('input', function () {
+                let valor = $(this).val().replace(/\D/g, ''); // remove caracteres não numéricos
+                if (valor.length <= 11) {
+                    valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); // Formatar CPF
+                } else {
+                    valor = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5"); // Formatar CNPJ
+                }
+                $(this).val(valor);
+            });
+        });
+
+        function consultarFaturas() {
+            let valor = $('#cnpjInput').val().replace(/\D/g, ''); // remove caracteres não numéricos
+
+            // Chame sua API aqui, isso é só um exemplo
+            fetch(`/consulta-faturas/${valor}`)
+                .then(response => response.json())
+                .then(data => {
+                    faturasData = data.ResponseDetail.Objects; // Armazena os dados das faturas
+                    exibirFaturas(faturasData);
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar faturas:', error);
+                });
+        }
+
+        function exibirFaturas(data) {
+            const tabelaBody = document.querySelector("#tabelaFaturas tbody");
+            tabelaBody.innerHTML = ''; // Limpa qualquer conteúdo anterior
+
+
+            if (data.length === 0) {
+                // Não há dados para exibir, mostrar mensagem informativa
+                const row = tabelaBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 6; // Ocupa todas as colunas
+                cell.textContent = "Nenhuma fatura encontrada para o CPF ou CNPJ informado.";
+                return;
+            }
+
+            data.forEach(fatura => {
+                const row = tabelaBody.insertRow();
+
+                row.insertCell(0).textContent = fatura.IdTransaction;
+                const statusCell = row.insertCell(1);
+                statusCell.textContent = fatura.Message; // Preenche o status com a mensagem de retorno
+                statusCell.className = adicionarClasseStatus(fatura.Message); // Usa o texto da mensagem para definir a classe de estilo
+                row.insertCell(2).textContent = formatarData(fatura.CreatedDate); // Formata a data
+                row.insertCell(3).textContent = `R$ ${fatura.Amount.toFixed(2)}`;
+                row.insertCell(4).textContent = metodoPagamentoMap[fatura.PaymentMethod] || 'Desconhecido'; // Usa o mapeamento para obter o texto do método de pagamento
+
+                const cellLink = row.insertCell(5);
+                if (fatura.PaymentObject && fatura.PaymentObject.BankSlipUrl) {
+                    const link = document.createElement("a");
+                    link.href = fatura.PaymentObject.BankSlipUrl;
+                    link.target = "_blank";
+                    link.className = "btn btn-boleto";
+                    link.innerHTML = '<i class="fas fa-file-invoice"></i>'; // Ícone de boleto
+                    cellLink.appendChild(link);
+                } else {
+                    cellLink.textContent = "-";
+                }
+            });
+        }
+
+        function filtrarFaturas() {
+            const filtroStatus = document.getElementById("filtroStatus").value;
+
+            if (filtroStatus === "todos") {
+                exibirFaturas(faturasData);
+            } else {
+                const faturasFiltradas = faturasData.filter(fatura => {
+                    if (filtroStatus === "pendentes") {
+                        return fatura.Message.toLowerCase() === "pendente";
+                    } else if (filtroStatus === "autorizados") {
+                        return fatura.Message.toLowerCase() === "autorizado";
+                    } else if (filtroStatus === "baixados") {
+                        return fatura.Message.toLowerCase() === "baixado";
+                    } else if (filtroStatus === "recusado") {
+                        return fatura.Message.toLowerCase() === "recusado";
+                    } else if (filtroStatus === "processamento") {
+                        return fatura.Message.toLowerCase() === "processamento";
+                    } else if (filtroStatus === "expirados") {
+                        return fatura.Message.toLowerCase() === "expirados";
+                    }
+                });
+
+                exibirFaturas(faturasFiltradas);
+            }
+        }
+    </script>
+</body>
+
+</html>

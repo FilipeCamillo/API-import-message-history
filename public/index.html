@@ -8,7 +8,13 @@
     <title>Seleção de Apps</title>
     <!-- Link para Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Link para Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
+        .card {
+            height: 100%;
+        }
+
         .card:hover {
             transform: scale(1.05);
             transition: all 0.3s ease;
@@ -27,27 +33,67 @@
         <h2 class="text-center mb-4">Escolha o que você precisa</h2>
         <div class="card-deck">
             <!-- Item 1 -->
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">APIs</h5>
-                    <p class="card-text">Se você é usuário do sistema da mktsend e precisa pegar os dados das vonversas para melhor tratamento.</p>
-                    <a href="/api" class="btn btn-light">Visitar</a>
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-code"></i> APIs</h5>
+                        <p class="card-text">Se você é usuário do sistema da mktsend e precisa pegar os dados das conversas para melhor tratamento.</p>
+                        <a href="/api" class="btn btn-light">Visitar</a>
+                    </div>
                 </div>
             </div>
             <!-- Item 2 -->
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Acesso admin</h5>
-                    <p class="card-text">Acesso exclusivo para o administrador do mktsend</p>
-                    <a href="/admin" class="btn btn-light">Visitar</a>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-lock"></i> Acesso admin</h5>
+                        <p class="card-text">Acesso exclusivo para o administrador do mktsend</p>
+                        <a href="/admin" class="btn btn-light">Visitar</a>
+                    </div>
                 </div>
             </div>
             <!-- Item 3 -->
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Importador de histórico</h5>
-                    <p class="card-text">Puxe as mensagens de clientes de outros sistemas para a mktsend</p>
-                    <a href="/ImportExcelPage" class="btn btn-dark">Visitar</a>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-file-excel"></i> Importador de histórico</h5>
+                        <p class="card-text">Puxe as mensagens de clientes de outros sistemas para a mktsend</p>
+                        <a href="/ImportExcelPage" class="btn btn-dark">Visitar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segunda linha de cards -->
+        <div class="card-deck mt-4">
+            <!-- Item 4 -->
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-file-invoice-dollar"></i> Faturas</h5>
+                        <p class="card-text">Selecione essa opção para consultar sua fatura e/ou pagar seus boletos</p>
+                        <a href="/faturas" class="btn btn-light">Visitar</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Item 5 -->
+            <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-chart-bar"></i> Relatórios Avançados</h5>
+                        <p class="card-text">Obtenha insights detalhados sobre o desempenho de suas campanhas.</p>
+                        <a href="/relatorios" class="btn btn-light">Visitar</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Item 6 -->
+            <div class="col-md-4">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-headset"></i> Suporte 24/7</h5>
+                        <p class="card-text">Nossa equipe de suporte está disponível a qualquer momento para ajudar você.</p>
+                        <a href="/suporte" class="btn btn-light">Visitar</a>
+                    </div>
                 </div>
             </div>
         </div>

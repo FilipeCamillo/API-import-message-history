@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Servidores</title>
+
+    <!-- Inclusão do Bootstrap e Font Awesome -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <style>
+        .table th,
+        .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Cor de fundo para a tabela inteira */
+        #tabelaServidores {
+            background-color: #F2F2F2;
+        }
+
+        /* Estilo para o botão de adicionar servidor */
+        .btn-add-server {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+
+        <!-- Botão para adicionar servidor -->
+        <div class="mb-4">
+            <button onclick="abrirModalAdicionarServidor()" class="btn btn-add-server">Adicionar Servidor</button>
+        </div>
+
+        <!-- Tabela para exibir os servidores -->
+        <div id="servidoresDiv">
+            <table id="tabelaServidores" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>IP</th>
+                        <th>Database</th>
+                        <th>Usuário</th>
+                        <th>Porta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Os dados dos servidores serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar servidor -->
+    <div class="modal fade" id="modalAdicionarServidor" tabindex="-1" aria-labelledby="modalAdicionarServidorLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAdicionarServidorLabel">Adicionar Novo Servidor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulário para adicionar servidor -->
+                    <form id="formAdicionarServidor" action="/cadastrar-servidor" method="POST">
+                        <div class="form-group">
+                            <label for="ip">IP:</label>
+                            <input type="text" class="form-control" id="ip" name="ip" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="database">Database:</label>
+                            <input type="text" class="form-control" id="database" name="database" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usuario">Usuário:</label>
+                            <input type="text" class="form-control" id="usuario" name="usuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="senha">Senha:</label>
+                            <input type="password" class="form-control" id="senha" name="senha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="porta">Porta:</label>
+                            <input type="text" class="form-control" id="porta" name="porta" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formAdicionarServidor" class="btn btn-primary">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Função para atualizar a tabela com os dados da rota /buscar-dados
+        function atualizarTabela() {
+            fetch('/buscar-dados') // Faz uma requisição GET para a rota /buscar-dados
+                .then(response => response.json()) // Converte a resposta em JSON
+                .then(data => {
+                    // Atualiza a tabela com os dados retornados
+                    exibirServidores(data);
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar dados do servidor:', error);
+                });
+        }
+
+        // Chame a função para carregar os dados quando a página carregar
+        window.addEventListener('load', atualizarTabela);
+        // Variável para armazenar os dados dos servidores
+        let servidoresData = [];
+
+        // Função para abrir o modal de adicionar servidor
+        function abrirModalAdicionarServidor() {
+            $('#modalAdicionarServidor').modal('show');
+        }
+
+        // Função para adicionar um novo servidor
+        function adicionarServidor() {
+            const ip = $('#ip').val();
+            const database = $('#database').val();
+            const usuario = $('#usuario').val();
+            const senha = $('#senha').val();
+            const porta = $('#porta').val();
+
+            // Valide os dados do formulário aqui, por exemplo, verifique se os campos estão preenchidos corretamente
+
+            // Crie um objeto de servidor com os dados inseridos
+            const novoServidor = {
+                id: servidoresData.length + 1,
+                ip,
+                database,
+                usuario,
+                senha,
+                porta,
+            };
+
+            // Adicione o novo servidor à lista de servidores
+            servidoresData.push(novoServidor);
+
+            // Feche o modal de adicionar servidor
+            $('#modalAdicionarServidor').modal('hide');
+
+            // Atualize a tabela de servidores
+            exibirServidores(servidoresData);
+        }
+
+        // Função para exibir os servidores na tabela
+        function exibirServidores(data) {
+            const tabelaBody = document.querySelector("#tabelaServidores tbody");
+            tabelaBody.innerHTML = ''; // Limpa qualquer conteúdo anterior
+
+            data.forEach(servidor => {
+                const row = tabelaBody.insertRow();
+                row.insertCell(0).textContent = servidor.id;
+                row.insertCell(1).textContent = servidor.ip;
+                row.insertCell(2).textContent = servidor.database;
+                row.insertCell(3).textContent = servidor.usuario;
+                row.insertCell(4).textContent = servidor.porta;
+            });
+        }
+    </script>
+</body>
+
+</html>
