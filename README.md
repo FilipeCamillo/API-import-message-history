@@ -30,10 +30,15 @@ Esta API oferece funcionalidades de gerenciamento de mensagens para empresas, pe
 
 ## Como Utilizar
 
-1. Clone este repositório.
-2. Configure as variáveis de ambiente com as informações do banco de dados no arquivo `.env`.
-3. Instale as dependências com `npm install` ou `yarn install`.
-4. Inicie a aplicação com `npm start` ou `yarn start`.
+1. `su deploy`
+2. `git clone https://github.com/FilipeCamillo/API-import-message-history.git`
+3. Configure as variáveis de ambiente com as informações do banco de dados no arquivo `.env`.
+4. Instale as dependências com `npm install` ou `yarn install`.
+5. Inicie a aplicação com `npm start` ou `yarn start`.
+6. `npm install pm2 -g`
+7. `pm2 start app.js --name "APIs"`
+8. `sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u deploy --hp /home/deploy`
+9. `pm2 save`
 
 ## Contribuindo
 
